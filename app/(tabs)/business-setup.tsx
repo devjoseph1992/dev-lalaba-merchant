@@ -2,19 +2,20 @@ import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-nativ
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
+import LocationPicker from '@/components/LocationPicker';
 
 export default function BusinessSetupScreen() {
   const [businessName, setBusinessName] = useState('');
   const [location, setLocation] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
   const [newCategory, setNewCategory] = useState('');
   const [categories, setCategories] = useState(['Detergent', 'Fabric Conditioner']);
 
   const [productName, setProductName] = useState('');
   const [productPrice, setProductPrice] = useState('');
   const [productCategory, setProductCategory] = useState(categories[0]);
-  const [products, setProducts] = useState<
-    { name: string; price: string; category: string }[]
-  >([]);
+  const [products, setProducts] = useState<{ name: string; price: string; category: string }[]>([]);
 
   const [services, setServices] = useState([
     {
@@ -29,22 +30,14 @@ export default function BusinessSetupScreen() {
     },
   ]);
 
-  const addInclusion = (serviceIndex: number) => {
-    const updated = [...services];
-    updated[serviceIndex].inclusions.push('');
-    setServices(updated);
-  };
-
-  const removeInclusion = (serviceIndex: number, inclusionIndex: number) => {
-    const updated = [...services];
-    updated[serviceIndex].inclusions.splice(inclusionIndex, 1);
-    setServices(updated);
-  };
-
-  const updateInclusion = (serviceIndex: number, inclusionIndex: number, text: string) => {
-    const updated = [...services];
-    updated[serviceIndex].inclusions[inclusionIndex] = text;
-    setServices(updated);
+  const handleLocationSet = (data: {
+    businessName: string;
+    address: string;
+    coords: { lat: number; lng: number };
+  }) => {
+    setBusinessName(data.businessName);
+    setLocation(data.address);
+    setCoords(data.coords);
   };
 
   const addCategory = () => {
@@ -66,30 +59,40 @@ export default function BusinessSetupScreen() {
     }
   };
 
+  const addInclusion = (index: number) => {
+    const updated = [...services];
+    updated[index].inclusions.push('');
+    setServices(updated);
+  };
+
+  const updateInclusion = (sIndex: number, iIndex: number, text: string) => {
+    const updated = [...services];
+    updated[sIndex].inclusions[iIndex] = text;
+    setServices(updated);
+  };
+
+  const removeInclusion = (sIndex: number, iIndex: number) => {
+    const updated = [...services];
+    updated[sIndex].inclusions.splice(iIndex, 1);
+    setServices(updated);
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-white px-4">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         <Text className="text-2xl font-bold my-4">Business Setup</Text>
 
-        {/* Business Name */}
-        <Text className="text-sm font-semibold text-gray-700 mb-1">Business Name</Text>
-        <TextInput
-          placeholder="Enter business name"
-          value={businessName}
-          onChangeText={setBusinessName}
-          className="border border-gray-300 rounded-lg p-3 mb-4"
-        />
+        {/* 🧭 Location + Business Name Picker */}
+        <LocationPicker onLocationSet={handleLocationSet} />
 
-        {/* Location (Placeholder) */}
-        <Text className="text-sm font-semibold text-gray-700 mb-1">Business Location</Text>
-        <TouchableOpacity
-          className="border border-gray-300 rounded-lg p-3 mb-4"
-          onPress={() => console.log('TODO: Show map picker')}
-        >
-          <Text className="text-gray-500">{location || 'Set exact location on map'}</Text>
-        </TouchableOpacity>
+        {/* 📍 Show Selected Location */}
+        {location && (
+          <Text className="text-sm text-gray-700 mb-4">
+            📍 {location}{"\n"}🧭 {coords?.lat}, {coords?.lng}
+          </Text>
+        )}
 
-        {/* Product Categories */}
+        {/* ➕ Product Categories */}
         <Text className="text-sm font-semibold text-gray-700 mb-1">Add Product Category</Text>
         <View className="flex-row items-center gap-2 mb-2">
           <TextInput
@@ -108,7 +111,7 @@ export default function BusinessSetupScreen() {
           ))}
         </View>
 
-        {/* Add Product */}
+        {/* ➕ Product Inputs */}
         <Text className="text-sm font-semibold text-gray-700 mb-1">Add Product</Text>
         <TextInput
           placeholder="Product name"
@@ -143,7 +146,7 @@ export default function BusinessSetupScreen() {
           <Text className="text-white text-center text-sm font-semibold">Add Product</Text>
         </TouchableOpacity>
 
-        {/* Product List */}
+        {/* 📦 Product List */}
         {products.length > 0 && (
           <>
             <Text className="text-sm font-semibold text-gray-700 mb-1">Product List</Text>
@@ -155,7 +158,7 @@ export default function BusinessSetupScreen() {
           </>
         )}
 
-        {/* Services */}
+        {/* 💼 Services */}
         <Text className="text-lg font-semibold mt-6 mb-3">Services</Text>
         {services.map((service, sIndex) => (
           <View key={sIndex} className="border border-gray-300 rounded-xl p-4 mb-4">
@@ -191,6 +194,7 @@ export default function BusinessSetupScreen() {
           </View>
         ))}
 
+        {/* 💾 Save */}
         <TouchableOpacity className="bg-black py-3 rounded-xl mt-6 mb-10">
           <Text className="text-white text-center font-semibold">Save Setup</Text>
         </TouchableOpacity>
