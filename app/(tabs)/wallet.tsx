@@ -1,8 +1,41 @@
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialIcons, Feather } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
+import { useAuth } from '@/context/AuthContext';
+
+const WALLET_API_BASE_URL = 'https://us-central1-lalaba-dev-2fbd7.cloudfunctions.net/api/wallet';
 
 export default function WalletScreen() {
+  const { user } = useAuth();
+  const [wallet, setWallet] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWallet = async () => {
+      if (!user?.uid) return;
+
+      try {
+        const res = await fetch(`${WALLET_API_BASE_URL}/${user.uid}`);
+        const data = await res.json();
+        setWallet(data);
+      } catch (err) {
+        console.error('Failed to fetch wallet:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWallet();
+  }, [user]);
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView contentContainerStyle={{ paddingBottom: 20 }} className="px-4 py-6">
@@ -11,7 +44,9 @@ export default function WalletScreen() {
           <View className="flex-row justify-between items-center mb-3">
             <View>
               <Text className="text-sm text-gray-500">Hi!</Text>
-              <Text className="text-lg font-semibold text-black">Jonie Balagoza Jr.</Text>
+              <Text className="text-lg font-semibold text-black">
+                {user?.displayName || 'Merchant'}
+              </Text>
               <Text className="text-xs text-gray-400">👤 Priority</Text>
             </View>
             <Image
@@ -20,8 +55,18 @@ export default function WalletScreen() {
             />
           </View>
 
-          <Text className="text-2xl font-bold text-black">₱5,500.50</Text>
-          <Text className="text-sm text-gray-500">Account No. 1011023040</Text>
+          {loading ? (
+            <ActivityIndicator />
+          ) : (
+            <>
+              <Text className="text-2xl font-bold text-black">
+                ₱{wallet?.balance || '0.00'}
+              </Text>
+              <Text className="text-sm text-gray-500">
+                Account No. {wallet?.accountNumber || 'N/A'}
+              </Text>
+            </>
+          )}
         </View>
 
         {/* Action Buttons */}
@@ -34,6 +79,7 @@ export default function WalletScreen() {
 
         {/* Transactions */}
         <Text className="text-lg font-semibold text-black mb-3">Wallet Transactions</Text>
+        {/* Replace with real data */}
         <TransactionRow label="Payment" to="lalaba services inc." amount="₱370.50" />
         <TransactionRow label="Transfer" to="1011023049" amount="₱20.50" />
         <TransactionRow label="Top Up" to="Lalaba Wallet" amount="₱2000.50" />

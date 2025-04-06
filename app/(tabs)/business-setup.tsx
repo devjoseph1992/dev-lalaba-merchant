@@ -1,199 +1,176 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { View, Text, ScrollView, SafeAreaView } from 'react-native';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import BusinessInfoForm from '@/components/BusinessInfoForm';
+import Stepper from '@/components/Stepper';
+import AddCategory from '@/components/AddCategory';
+import AddProduct from '@/components/AddProduct';
+import AddServices from '@/components/AddServices';
+import { firestore } from '@/firebase/firebaseConfig';
 
 export default function BusinessSetupScreen() {
-  const [businessName, setBusinessName] = useState('');
-  const [location, setLocation] = useState('');
-  const [newCategory, setNewCategory] = useState('');
-  const [categories, setCategories] = useState(['Detergent', 'Fabric Conditioner']);
+  const steps = ['Info', 'Categories', 'Products', 'Services', 'Done'];
+  const [step, setStep] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
 
-  const [productName, setProductName] = useState('');
-  const [productPrice, setProductPrice] = useState('');
-  const [productCategory, setProductCategory] = useState(categories[0]);
-  const [products, setProducts] = useState<
-    { name: string; price: string; category: string }[]
-  >([]);
+  const [businessInfo, setBusinessInfo] = useState<any>(null);
+  const [savedCategories, setSavedCategories] = useState<string[]>([]);
+  const [savedProducts, setSavedProducts] = useState<any[]>([]);
+  const [savedServices, setSavedServices] = useState<any[]>([]);
 
+  const defaultCategories = ['Detergent', 'Fabric Conditioner'];
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [products, setProducts] = useState<{ name: string; price: string; category: string }[]>([]);
   const [services, setServices] = useState([
-    {
-      name: 'Regular',
-      price: '',
-      inclusions: ['Standard delivery'],
-    },
-    {
-      name: 'Premium',
-      price: '',
-      inclusions: ['Priority delivery'],
-    },
+    { name: 'Regular', price: '', inclusions: ['Standard delivery'] },
+    { name: 'Premium', price: '', inclusions: ['Priority delivery'] },
   ]);
 
-  const addInclusion = (serviceIndex: number) => {
-    const updated = [...services];
-    updated[serviceIndex].inclusions.push('');
-    setServices(updated);
-  };
+  const allCategories = [...defaultCategories, ...customCategories];
 
-  const removeInclusion = (serviceIndex: number, inclusionIndex: number) => {
-    const updated = [...services];
-    updated[serviceIndex].inclusions.splice(inclusionIndex, 1);
-    setServices(updated);
-  };
+  const [detergentOptions, setDetergentOptions] = useState<string[]>([]);
+  const [fabricConditionerOptions, setFabricConditionerOptions] = useState<string[]>([]);
 
-  const updateInclusion = (serviceIndex: number, inclusionIndex: number, text: string) => {
-    const updated = [...services];
-    updated[serviceIndex].inclusions[inclusionIndex] = text;
-    setServices(updated);
-  };
+  // 🧠 Load setup data if completed
+  useEffect(() => {
+    const fetchCompletedSetup = async () => {
+      const user = getAuth().currentUser;
+      if (!user) return;
 
-  const addCategory = () => {
-    if (newCategory && !categories.includes(newCategory)) {
-      setCategories((prev) => [...prev, newCategory]);
-      setNewCategory('');
+      try {
+        const infoSnap = await getDoc(doc(firestore, 'businesses', user.uid, 'info', 'details'));
+        if (infoSnap.exists()) {
+          const infoData = infoSnap.data();
+          if (infoData.status === 'setup-complete') {
+            setIsComplete(true);
+            setBusinessInfo(infoData);
+          }
+        }
+
+        const catSnap = await getDocs(collection(firestore, 'businesses', user.uid, 'categories'));
+        const allCat = catSnap.docs.map((doc) => doc.data().name);
+        setSavedCategories(allCat);
+
+        const prodSnap = await getDocs(collection(firestore, 'businesses', user.uid, 'products'));
+        const prodData = prodSnap.docs.map((doc) => doc.data());
+        setSavedProducts(prodData);
+
+        const detergents = prodData.filter((p) => p.category === 'Detergent').map((p) => p.name);
+        const conditioners = prodData.filter((p) => p.category === 'Fabric Conditioner').map((p) => p.name);
+        setDetergentOptions(detergents);
+        setFabricConditionerOptions(conditioners);
+
+        const servSnap = await getDocs(collection(firestore, 'businesses', user.uid, 'services'));
+        const servData = servSnap.docs.map((doc) => doc.data());
+        setSavedServices(servData);
+      } catch (err) {
+        console.error('❌ Failed to load setup data:', err);
+      }
+    };
+
+    fetchCompletedSetup();
+  }, []);
+
+  const renderStep = () => {
+    if (isComplete) {
+      return (
+        <View className="space-y-6">
+          <Text className="text-xl font-bold mb-2">✅ Business Info</Text>
+          <BusinessInfoForm onSaved={() => {}} readonly defaultValues={businessInfo} />
+
+          <Text className="text-xl font-bold mb-2">📦 Product Categories</Text>
+          <AddCategory
+            defaultCategories={defaultCategories}
+            customCategories={savedCategories.filter((c) => !defaultCategories.includes(c))}
+            onAdd={() => {}}
+            onComplete={() => {}}
+            isComplete={true}
+            readonly
+          />
+
+          <Text className="text-xl font-bold mb-2">🛍 Products</Text>
+          <AddProduct
+            categories={[...savedCategories]}
+            onAdd={() => {}}
+            onDone={() => {}}
+            readonly
+            existingProducts={savedProducts}
+          />
+
+          <Text className="text-xl font-bold mb-2">🧾 Services</Text>
+          <AddServices
+            services={savedServices}
+            onUpdate={() => {}}
+            onComplete={() => {}}
+            readonly
+            detergentOptions={detergentOptions}
+            fabricConditionerOptions={fabricConditionerOptions}
+          />
+        </View>
+      );
     }
-  };
 
-  const addProduct = () => {
-    if (productName && productPrice && productCategory) {
-      setProducts((prev) => [
-        ...prev,
-        { name: productName, price: productPrice, category: productCategory },
-      ]);
-      setProductName('');
-      setProductPrice('');
-      setProductCategory(categories[0]);
+    switch (step) {
+      case 0:
+        return (
+          <BusinessInfoForm
+            onSaved={(info) => {
+              setBusinessInfo(info);
+              setStep(1);
+            }}
+          />
+        );
+      case 1:
+        return (
+          <AddCategory
+            defaultCategories={defaultCategories}
+            customCategories={customCategories}
+            onAdd={(newCat) => setCustomCategories((prev) => [...prev, newCat])}
+            onComplete={() => setStep(2)}
+            isComplete={step > 1}
+          />
+        );
+      case 2:
+        return (
+          <AddProduct
+            categories={allCategories}
+            onAdd={(product) => setProducts((prev) => [...prev, product])}
+            onDone={() => setStep(3)}
+          />
+        );
+      case 3:
+        return (
+          <AddServices
+            services={services}
+            onUpdate={setServices}
+            onComplete={() => {
+              setIsComplete(true);
+              setStep(4);
+            }}
+            detergentOptions={detergentOptions}
+            fabricConditionerOptions={fabricConditionerOptions}
+          />
+        );
+      case 4:
+        return (
+          <View className="mt-6">
+            <Text className="text-lg font-bold mb-4">🎉 Setup Complete!</Text>
+            <Text className="text-gray-700">You’ve completed your business setup.</Text>
+          </View>
+        );
     }
   };
 
   return (
     <SafeAreaView className="flex-1 bg-white px-4">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <Text className="text-2xl font-bold my-4">Business Setup</Text>
 
-        {/* Business Name */}
-        <Text className="text-sm font-semibold text-gray-700 mb-1">Business Name</Text>
-        <TextInput
-          placeholder="Enter business name"
-          value={businessName}
-          onChangeText={setBusinessName}
-          className="border border-gray-300 rounded-lg p-3 mb-4"
-        />
+        {/* 🚫 Hide Stepper after completion */}
+        {!isComplete && <Stepper steps={steps} currentStep={step} />}
 
-        {/* Location (Placeholder) */}
-        <Text className="text-sm font-semibold text-gray-700 mb-1">Business Location</Text>
-        <TouchableOpacity
-          className="border border-gray-300 rounded-lg p-3 mb-4"
-          onPress={() => console.log('TODO: Show map picker')}
-        >
-          <Text className="text-gray-500">{location || 'Set exact location on map'}</Text>
-        </TouchableOpacity>
-
-        {/* Product Categories */}
-        <Text className="text-sm font-semibold text-gray-700 mb-1">Add Product Category</Text>
-        <View className="flex-row items-center gap-2 mb-2">
-          <TextInput
-            placeholder="e.g. Bleach"
-            value={newCategory}
-            onChangeText={setNewCategory}
-            className="flex-1 border border-gray-300 rounded-lg p-2"
-          />
-          <TouchableOpacity onPress={addCategory} className="bg-black px-4 py-2 rounded-lg">
-            <Text className="text-white text-sm">Add</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="mb-4">
-          {categories.map((cat, idx) => (
-            <Text key={idx} className="text-sm text-gray-600">- {cat}</Text>
-          ))}
-        </View>
-
-        {/* Add Product */}
-        <Text className="text-sm font-semibold text-gray-700 mb-1">Add Product</Text>
-        <TextInput
-          placeholder="Product name"
-          value={productName}
-          onChangeText={setProductName}
-          className="border border-gray-300 rounded-lg p-2 mb-2"
-        />
-        <TextInput
-          placeholder="Product price (₱)"
-          value={productPrice}
-          keyboardType="numeric"
-          onChangeText={setProductPrice}
-          className="border border-gray-300 rounded-lg p-2 mb-2"
-        />
-        <Text className="text-xs text-gray-600 mb-1">Category: {productCategory}</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              onPress={() => setProductCategory(cat)}
-              className={`px-3 py-1 mr-2 rounded-full border ${
-                productCategory === cat ? 'bg-black border-black' : 'border-gray-300'
-              }`}
-            >
-              <Text className={productCategory === cat ? 'text-white' : 'text-black text-sm'}>
-                {cat}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <TouchableOpacity onPress={addProduct} className="bg-black py-2 rounded-xl mb-4">
-          <Text className="text-white text-center text-sm font-semibold">Add Product</Text>
-        </TouchableOpacity>
-
-        {/* Product List */}
-        {products.length > 0 && (
-          <>
-            <Text className="text-sm font-semibold text-gray-700 mb-1">Product List</Text>
-            {products.map((p, idx) => (
-              <Text key={idx} className="text-sm text-gray-600 mb-1">
-                - {p.name} ({p.category}) — ₱{p.price}
-              </Text>
-            ))}
-          </>
-        )}
-
-        {/* Services */}
-        <Text className="text-lg font-semibold mt-6 mb-3">Services</Text>
-        {services.map((service, sIndex) => (
-          <View key={sIndex} className="border border-gray-300 rounded-xl p-4 mb-4">
-            <Text className="text-base font-bold mb-2">{service.name}</Text>
-            <TextInput
-              placeholder="Set price (₱)"
-              keyboardType="numeric"
-              value={service.price}
-              onChangeText={(text) => {
-                const updated = [...services];
-                updated[sIndex].price = text;
-                setServices(updated);
-              }}
-              className="border border-gray-300 rounded-lg p-2 mb-3"
-            />
-            <Text className="text-sm font-semibold text-gray-700 mb-1">Inclusions</Text>
-            {service.inclusions.map((inc, iIndex) => (
-              <View key={iIndex} className="flex-row items-center mb-2">
-                <TextInput
-                  value={inc}
-                  placeholder="Add inclusion"
-                  onChangeText={(text) => updateInclusion(sIndex, iIndex, text)}
-                  className="flex-1 border border-gray-300 rounded-lg p-2"
-                />
-                <TouchableOpacity onPress={() => removeInclusion(sIndex, iIndex)} className="ml-2">
-                  <Ionicons name="close-circle" size={20} color="red" />
-                </TouchableOpacity>
-              </View>
-            ))}
-            <TouchableOpacity onPress={() => addInclusion(sIndex)} className="mt-2">
-              <Text className="text-xs text-blue-500">+ Add Inclusion</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-
-        <TouchableOpacity className="bg-black py-3 rounded-xl mt-6 mb-10">
-          <Text className="text-white text-center font-semibold">Save Setup</Text>
-        </TouchableOpacity>
+        {renderStep()}
       </ScrollView>
     </SafeAreaView>
   );
