@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native';
+import { Text, View } from 'react-native';
 
 type StepperProps = {
   steps: string[];
@@ -6,7 +6,11 @@ type StepperProps = {
   showProgressText?: boolean;
 };
 
-export default function Stepper({ steps, currentStep, showProgressText = false }: StepperProps) {
+export default function Stepper({
+  steps,
+  currentStep,
+  showProgressText = false,
+}: StepperProps) {
   return (
     <View className="mb-6 px-2">
       {/* Optional progress text */}
@@ -26,7 +30,11 @@ export default function Stepper({ steps, currentStep, showProgressText = false }
               <View className="relative items-center">
                 <View
                   className={`w-8 h-8 rounded-full justify-center items-center ${
-                    isActive ? 'bg-black' : isCompleted ? 'bg-green-500' : 'bg-gray-300'
+                    isActive
+                      ? 'bg-black'
+                      : isCompleted
+                        ? 'bg-green-500'
+                        : 'bg-gray-300'
                   }`}
                 >
                   <Text className="text-white font-bold">{index + 1}</Text>

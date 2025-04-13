@@ -4,7 +4,32 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7e4abda5-5024-4ee1-958b-f36cc444f178" name="Changes" comment="" />
+    <list default="true" id="7e4abda5-5024-4ee1-958b-f36cc444f178" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/api/business.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/categories.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/products.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/api/services.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.config.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/business-setup.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/business-setup.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/wallet.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/wallet.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/verify-email.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/verify-email.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/AddCategory.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/AddCategory.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/AddProduct.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/AddProduct.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/AddServices.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/AddServices.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/BusinessInfoForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/BusinessInfoForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/Protected.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/Protected.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/Stepper.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/Stepper.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/AuthContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/context/AuthContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/firebase/firebaseConfig.ts" beforeDir="false" afterPath="$PROJECT_DIR$/firebase/firebaseConfig.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,8 +38,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="TypeScript File" />
         <option value="TypeScript JSX File" />
+        <option value="TypeScript File" />
       </list>
     </option>
   </component>
@@ -45,14 +70,17 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/joniebalagozajr/Desktop/findxnyapp/lalabadeploy-postprod/lalaba-server-dev/apps/dev-lalaba-merchant&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/joniebalagozajr/Desktop/lalaba-dev-app/dev-lalaba-merchant&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/joniebalagozajr/Desktop/findxnyapp/lalabadeploy-postprod/lalaba-server-dev/apps/dev-lalaba-merchant/node_modules/typescript/lib&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/joniebalagozajr/Desktop/lalaba-dev-app/dev-lalaba-merchant/node_modules/prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;settings.javascript.prettier&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/joniebalagozajr/Desktop/lalaba-dev-app/dev-lalaba-merchant/node_modules/typescript/lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -72,6 +100,14 @@
       <option name="presentableId" value="Default" />
       <updated>1743925798056</updated>
       <workItem from="1743925799140" duration="14776000" />
+      <workItem from="1744201645792" duration="1000" />
+      <workItem from="1744201831402" duration="27000" />
+      <workItem from="1744261904257" duration="972000" />
+      <workItem from="1744381453281" duration="293000" />
+      <workItem from="1744382184045" duration="1953000" />
+      <workItem from="1744384704129" duration="19308000" />
+      <workItem from="1744501349013" duration="3327000" />
+      <workItem from="1744508593304" duration="16169000" />
     </task>
     <servers />
   </component>

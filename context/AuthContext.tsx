@@ -15,11 +15,7 @@ import {
   getIdTokenResult,
 } from 'firebase/auth';
 import { auth } from '@/firebase/firebaseConfig';
-import {
-  saveToken,
-  getToken,
-  deleteToken,
-} from '@/firebase/secureStore';
+import { saveToken, getToken, deleteToken } from '@/firebase/secureStore';
 import { log, error } from '@/utils/logger';
 import { router, usePathname } from 'expo-router';
 
@@ -40,73 +36,82 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const tokenResult = await getIdTokenResult(firebaseUser);
-        const role = tokenResult.claims.role;
+      try {
+        if (firebaseUser) {
+          const tokenResult = await getIdTokenResult(firebaseUser);
+          const role = tokenResult.claims.role;
 
-        if (!firebaseUser.emailVerified) {
-          log('⛔ Email not verified.');
-          if (pathname !== '/verify-email') {
-            router.replace('/verify-email');
+          if (!firebaseUser.emailVerified) {
+            log('⛔ Email not verified.');
+            if (pathname !== '/verify-email') {
+              router.replace('/verify-email');
+            }
+            return;
           }
-          setLoading(false);
-          return;
-        }
 
-        if (role === 'merchant') {
-          const token = await getIdToken(firebaseUser);
-          await saveToken('userToken', token);
-          setUser(firebaseUser);
-          log('✅ Logged in (restored):', firebaseUser.email);
+          if (role === 'merchant') {
+            const token = await getIdToken(firebaseUser);
+            console.log('🔐 Bearer Token (for Postman):', token);
 
-          // ✅ Only redirect once on first login/restore
-          const inTabRoutes = ['/', '/wallet', '/profile', '/business-setup'];
-          if (
-            !inTabRoutes.includes(pathname) &&
-            pathname !== '/verify-email' &&
-            pathname !== '/login' &&
-            !didInitialRedirect.current
-          ) {
-            didInitialRedirect.current = true;
-            log('➡️ Redirecting to /tabs');
-            router.replace('/(tabs)/');
+            await saveToken('userToken', token);
+            await saveToken('userId', firebaseUser.uid); // ✅ Save UID
+
+            setUser(firebaseUser);
+            log('✅ Logged in (restored):', firebaseUser.email);
+
+            if (
+              pathname !== '/(tabs)/' &&
+              pathname !== '/login' &&
+              pathname !== '/verify-email' &&
+              !didInitialRedirect.current
+            ) {
+              didInitialRedirect.current = true;
+              log('➡️ Redirecting to /tabs');
+              router.replace('/(tabs)/');
+            }
+          } else {
+            await signOut(auth);
+            await deleteToken('userToken');
+            await deleteToken('userId'); // ✅ Delete UID
+            setUser(null);
+            log('⛔ Not a merchant. User signed out.');
           }
         } else {
-          await signOut(auth);
-          await deleteToken('userToken');
-          setUser(null);
-          log('⛔ Not a merchant. User signed out.');
-        }
-      } else {
-        const cachedToken = await getToken('userToken');
-        if (cachedToken) {
-          log('🔄 Token exists in SecureStore, waiting for Firebase session...');
-        } else {
-          await deleteToken('userToken');
-          setUser(null);
-          if (pathname !== '/login') {
-            router.replace('/login');
+          const cachedToken = await getToken('userToken');
+          if (cachedToken) {
+            log('🔄 Token exists, waiting for Firebase session...');
+          } else {
+            await deleteToken('userToken');
+            await deleteToken('userId'); // ✅ Delete UID
+            setUser(null);
+            if (pathname !== '/login') {
+              router.replace('/login');
+            }
+            log('ℹ️ No user found');
           }
-          log('ℹ️ No user found');
         }
+      } catch (err) {
+        error('❌ Auth state error:', err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     });
 
     return unsubscribe;
-  }, []); // ✅ only once on app load
+  }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const firebaseUser = userCredential.user;
 
       if (!firebaseUser.emailVerified) {
         log('⛔ Email not verified.');
-        if (pathname !== '/verify-email') {
-          router.replace('/verify-email');
-        }
+        router.replace('/verify-email');
         return;
       }
 
@@ -114,20 +119,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (tokenResult.claims.role !== 'merchant') {
         await signOut(auth);
         await deleteToken('userToken');
+        await deleteToken('userId');
         throw new Error('Access denied: Only merchants can log in.');
       }
 
       const token = await firebaseUser.getIdToken();
+      console.log('🔐 Bearer Token (for Postman):', token);
+
       await saveToken('userToken', token);
+      await saveToken('userId', firebaseUser.uid); // ✅ Save UID
       setUser(firebaseUser);
 
-      const inTabRoutes = ['/', '/wallet', '/profile', '/business-setup'];
-      if (!inTabRoutes.includes(pathname)) {
-        log('➡️ Redirecting to /tabs');
-        router.replace('/(tabs)/');
-      }
-
       log('✅ Logged in:', firebaseUser.email);
+      router.replace('/(tabs)/');
     } catch (err) {
       error('❌ Login error:', err);
       throw err;
@@ -138,8 +142,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signOut(auth);
       await deleteToken('userToken');
+      await deleteToken('userId'); // ✅ Clear UID
       setUser(null);
       log('🔒 Logged out');
+      router.replace('/login');
     } catch (err) {
       error('❌ Logout error:', err);
     }

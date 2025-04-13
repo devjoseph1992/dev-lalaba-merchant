@@ -1,4 +1,4 @@
-import { View, Text, TextInput, TouchableOpacity, Image, Alert } from 'react-native';
+import { Alert, Image, Text, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
@@ -55,7 +55,9 @@ export default function ProfileScreen() {
       </Text>
 
       {/* Payment Method */}
-      <Text className="text-sm font-semibold text-gray-700 mb-1">Payment Method</Text>
+      <Text className="text-sm font-semibold text-gray-700 mb-1">
+        Payment Method
+      </Text>
       <TextInput
         placeholder="e.g. GCash, Bank Transfer"
         value={paymentMethod}

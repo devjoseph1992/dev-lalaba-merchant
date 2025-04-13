@@ -1,44 +1,51 @@
-import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import {
-  getAuth,
-  onAuthStateChanged,
-  getIdToken,
-  Auth,
-} from 'firebase/auth';
+// src/config/firebase.ts or FirebaseConfig.ts
+
+import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
+import { Auth, getAuth, getIdToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
-import { log, warn, error } from '@/utils/logger';
+import { error, log } from '@/utils/logger';
 
-// ✅ Read Firebase config from app.config.js (extra.firebase)
-const firebaseEnv = Constants.expoConfig?.extra?.firebase;
+// ✅ Read from Constants.extra (flat keys — make sure these are in app.config.js)
+const extra = Constants.expoConfig?.extra;
 
-if (!firebaseEnv?.apiKey || !firebaseEnv?.appId || !firebaseEnv?.projectId) {
-  throw new Error('❌ Missing Firebase environment variables. Check app.config.js or .env.');
+if (
+  !extra?.firebaseApiKey ||
+  !extra?.firebaseAppId ||
+  !extra?.firebaseProjectId
+) {
+  throw new Error(
+    '❌ Missing Firebase environment variables. Check your app.config.js or .env'
+  );
 }
 
 const firebaseConfig = {
-  apiKey: firebaseEnv.apiKey,
-  authDomain: firebaseEnv.authDomain,
-  projectId: firebaseEnv.projectId,
-  storageBucket: firebaseEnv.storageBucket,
-  messagingSenderId: firebaseEnv.messagingSenderId,
-  appId: firebaseEnv.appId,
-  databaseURL: firebaseEnv.databaseURL,
+  apiKey: extra.firebaseApiKey,
+  authDomain: extra.firebaseAuthDomain,
+  projectId: extra.firebaseProjectId,
+  storageBucket: extra.firebaseStorageBucket,
+  messagingSenderId: extra.firebaseMessagingSenderId,
+  appId: extra.firebaseAppId,
+  databaseURL: extra.firebaseDatabaseURL,
 };
 
-// ✅ Singleton-safe Firebase init
-let app: FirebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
-log(getApps().length ? 'ℹ️ Firebase already initialized' : '✅ Firebase initialized');
+// ✅ Singleton-safe Firebase initialization
+let app: FirebaseApp = getApps().length
+  ? getApp()
+  : initializeApp(firebaseConfig);
+log(
+  getApps().length
+    ? 'ℹ️ Firebase already initialized'
+    : '✅ Firebase initialized'
+);
 
-// ✅ Auth (Web SDK — no built-in persistence in Expo Go)
+// ✅ Firebase Auth and Firestore setup
 const auth: Auth = getAuth(app);
-
-// ✅ Firestore
 const firestore = getFirestore(app);
 
-// ✅ Handle persistence manually (SecureStore or AsyncStorage)
+// ✅ Manually handle token persistence
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     log('✅ User is signed in:', user.email);

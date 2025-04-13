@@ -1,36 +1,75 @@
-// app/verify-email.tsx
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Text, TouchableOpacity, View } from 'react-native';
 import { auth } from '@/firebase/firebaseConfig';
 import { router } from 'expo-router';
 import { log } from '@/utils/logger';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { signOut, sendEmailVerification } from 'firebase/auth';
 
 export default function VerifyEmailScreen() {
   const [sent, setSent] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  // Send email on mount if needed
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) {
+      log('❌ No user signed in. Redirecting to login.');
+      router.replace('/login');
+      return;
+    }
+
+    setEmail(user.email ?? null);
+    sendVerification();
+  }, []);
 
   const sendVerification = async () => {
-    if (auth.currentUser) {
-      // @ts-ignore
-      await auth.currentUser.sendEmailVerification();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      setIsSending(true);
+      await sendEmailVerification(user); // ✅ Correct usage
       setSent(true);
-      log('✅ Verification email sent');
+      Alert.alert(
+        'Verification Email Sent',
+        'Check your inbox or spam folder.'
+      );
+      log(`✅ Verification email sent to: ${user.email}`);
+    } catch (err) {
+      log('❌ Error sending email', err);
+      Alert.alert('Error', 'Failed to send verification email.');
+    } finally {
+      setIsSending(false);
     }
   };
 
   const checkVerification = async () => {
-    await auth.currentUser?.reload(); // refresh user info
-    if (auth.currentUser?.emailVerified) {
-      log('✅ Email verified, redirecting...');
-      router.replace('/');
+    if (!auth.currentUser) return;
+
+    setChecking(true);
+    await auth.currentUser.reload();
+
+    if (auth.currentUser.emailVerified) {
+      log('✅ Email verified. Redirecting to tabs...');
+      Alert.alert('✅ Verified!', 'Redirecting...');
+      router.replace('/(tabs)/'); // ✅ Redirect to tabs
     } else {
-      Alert.alert('Still not verified', 'Please check your email and try again.');
+      Alert.alert(
+        'Still Not Verified',
+        'Please check your inbox and try again.'
+      );
     }
+
+    setChecking(false);
   };
 
-  useEffect(() => {
-    sendVerification();
-  }, []);
+  const logout = async () => {
+    await signOut(auth);
+    router.replace('/login');
+    log('🔓 User logged out from verify-email screen');
+  };
 
   return (
     <View className="flex-1 justify-center bg-white px-6 py-10">
@@ -44,7 +83,7 @@ export default function VerifyEmailScreen() {
         </Text>
 
         <Text className="text-base font-semibold text-black mb-4">
-          {auth.currentUser?.email}
+          {email ?? 'your email'}
         </Text>
 
         {sent && (
@@ -55,19 +94,31 @@ export default function VerifyEmailScreen() {
 
         <TouchableOpacity
           onPress={sendVerification}
-          className="w-full bg-gray-100 py-3 px-6 rounded-xl mb-4"
+          disabled={isSending}
+          className={`w-full ${
+            isSending ? 'bg-gray-300' : 'bg-gray-100'
+          } py-3 px-6 rounded-xl mb-4`}
         >
           <Text className="text-center text-gray-800 font-medium">
-            Resend Verification Email
+            {isSending ? 'Sending...' : 'Resend Verification Email'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={checkVerification}
-          className="w-full bg-black py-3 px-6 rounded-xl"
+          className="w-full bg-black py-3 px-6 rounded-xl mb-4"
         >
           <Text className="text-center text-white font-semibold">
-            I’ve Verified My Email
+            {checking ? 'Checking...' : 'I’ve Verified My Email'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={logout}
+          className="w-full bg-red-100 border border-red-300 py-3 px-6 rounded-xl mt-2"
+        >
+          <Text className="text-center text-red-600 font-semibold">
+            Use a Different Account
           </Text>
         </TouchableOpacity>
 

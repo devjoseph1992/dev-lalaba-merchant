@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
 
-const WALLET_API_BASE_URL = 'https://us-central1-lalaba-dev-2fbd7.cloudfunctions.net/api/wallet';
+const WALLET_API_BASE_URL =
+  'https://us-central1-lalaba-dev-2fbd7.cloudfunctions.net/api/wallet';
 
 export default function WalletScreen() {
   const { user } = useAuth();
@@ -38,7 +39,10 @@ export default function WalletScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }} className="px-4 py-6">
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 20 }}
+        className="px-4 py-6"
+      >
         {/* Header / Balance Card */}
         <View className="bg-gray-100 rounded-2xl p-5 mb-6 shadow-sm">
           <View className="flex-row justify-between items-center mb-3">
@@ -78,9 +82,15 @@ export default function WalletScreen() {
         </View>
 
         {/* Transactions */}
-        <Text className="text-lg font-semibold text-black mb-3">Wallet Transactions</Text>
+        <Text className="text-lg font-semibold text-black mb-3">
+          Wallet Transactions
+        </Text>
         {/* Replace with real data */}
-        <TransactionRow label="Payment" to="lalaba services inc." amount="₱370.50" />
+        <TransactionRow
+          label="Payment"
+          to="lalaba services inc."
+          amount="₱370.50"
+        />
         <TransactionRow label="Transfer" to="1011023049" amount="₱20.50" />
         <TransactionRow label="Top Up" to="Lalaba Wallet" amount="₱2000.50" />
 
@@ -90,11 +100,13 @@ export default function WalletScreen() {
             Verify your identity before transferring money to others
           </Text>
           <Text className="text-xs text-gray-500 mb-3">
-            In accordance with your country's regulatory requirements, Lalaba users are required to verify their
-            wallets to ensure security.
+            In accordance with your country's regulatory requirements, Lalaba
+            users are required to verify their wallets to ensure security.
           </Text>
           <TouchableOpacity className="bg-black rounded-xl py-3">
-            <Text className="text-white text-center text-sm font-medium">Verify Now</Text>
+            <Text className="text-white text-center text-sm font-medium">
+              Verify Now
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -104,10 +116,13 @@ export default function WalletScreen() {
 
 function ActionButton({ icon, label }: { icon: string; label: string }) {
   const IconComponent =
-    icon === 'wallet' ? Ionicons :
-      icon === 'swap-horizontal' ? Ionicons :
-        icon === 'send' ? Feather :
-          Ionicons;
+    icon === 'wallet'
+      ? Ionicons
+      : icon === 'swap-horizontal'
+        ? Ionicons
+        : icon === 'send'
+          ? Feather
+          : Ionicons;
 
   return (
     <TouchableOpacity className="items-center w-1/5">
@@ -120,10 +135,10 @@ function ActionButton({ icon, label }: { icon: string; label: string }) {
 }
 
 function TransactionRow({
-                          label,
-                          to,
-                          amount,
-                        }: {
+  label,
+  to,
+  amount,
+}: {
   label: string;
   to: string;
   amount: string;
