@@ -3,6 +3,8 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
 import { Auth, getAuth, getIdToken, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'; // ✅ added
+
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
@@ -41,9 +43,20 @@ log(
     : '✅ Firebase initialized'
 );
 
-// ✅ Firebase Auth and Firestore setup
+// ✅ Firebase Auth, Firestore, and Functions
 const auth: Auth = getAuth(app);
 const firestore = getFirestore(app);
+const functions = getFunctions(app); // ✅ added
+
+// ✅ Use local emulator for functions (only in dev)
+if (__DEV__) {
+  try {
+    log('⚡ Connecting to Firebase Functions emulator on localhost:5001');
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+  } catch (err) {
+    console.warn('⚠️ Failed to connect to emulator:', err);
+  }
+}
 
 // ✅ Manually handle token persistence
 onAuthStateChanged(auth, async (user) => {
@@ -65,4 +78,4 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-export { app, auth, firestore };
+export { app, auth, firestore, functions }; // ✅ exported functions

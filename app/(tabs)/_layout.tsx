@@ -43,6 +43,19 @@ export default function TabLayout() {
             }}
           />
           <Tabs.Screen
+            name="accepted-orders"
+            options={{
+              title: 'Accepted',
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons
+                  name="checkmark-done-outline"
+                  size={size}
+                  color={color}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
             name="profile"
             options={{
               title: 'Profile',
@@ -60,6 +73,6 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white', // Optional
+    backgroundColor: 'white',
   },
 });

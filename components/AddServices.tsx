@@ -17,6 +17,8 @@ type Service = {
   inclusions: string[];
   defaultDetergentId?: string;
   defaultFabricConditionerId?: string;
+  detergentPerKilo?: string;
+  fabricPerKilo?: string;
 };
 
 type ProductOption = { id: string; name: string };
@@ -52,12 +54,23 @@ export default function AddServices({
 
     try {
       const priceNum = parseFloat(service.price);
+      const detergentQty = parseFloat(service.detergentPerKilo || '');
+      const fabricQty = parseFloat(service.fabricPerKilo || '');
+
+      const detergent = detergentOptions.find(
+        (d) => d.id === service.defaultDetergentId
+      );
+      const fabric = fabricConditionerOptions.find(
+        (f) => f.id === service.defaultFabricConditionerId
+      );
 
       if (
         !service.price ||
         isNaN(priceNum) ||
         !service.defaultDetergentId ||
-        !service.defaultFabricConditionerId
+        !service.defaultFabricConditionerId ||
+        isNaN(detergentQty) ||
+        isNaN(fabricQty)
       ) {
         Alert.alert(
           'Missing fields',
@@ -71,7 +84,11 @@ export default function AddServices({
         price: priceNum,
         inclusions: service.inclusions.filter((inc) => inc.trim() !== ''),
         defaultDetergentId: service.defaultDetergentId,
+        defaultDetergentName: detergent?.name || '',
+        detergentPerKilo: detergentQty,
         defaultFabricConditionerId: service.defaultFabricConditionerId,
+        defaultFabricConditionerName: fabric?.name || '',
+        fabricPerKilo: fabricQty,
       };
 
       console.log('🔍 Payload to send:', payload);
@@ -153,7 +170,7 @@ export default function AddServices({
             <Text className="text-xs text-blue-500">+ Add Inclusion</Text>
           </TouchableOpacity>
 
-          {/* 🧼 Default Detergent */}
+          {/* 🧼 Detergent */}
           <Text className="text-sm font-semibold text-gray-700 mb-1">
             Default Detergent
           </Text>
@@ -169,11 +186,11 @@ export default function AddServices({
                 }`}
               >
                 <Text
-                  className={`text-base font-medium ${
+                  className={
                     service.defaultDetergentId === id
                       ? 'text-white'
                       : 'text-black'
-                  }`}
+                  }
                 >
                   {name}
                 </Text>
@@ -181,11 +198,24 @@ export default function AddServices({
             ))}
           </ScrollView>
 
-          {/* 🧴 Default Fabric Conditioner */}
+          <Text className="text-sm mb-1 text-gray-600">
+            Quantity per kilo (ml/g)
+          </Text>
+          <TextInput
+            keyboardType="numeric"
+            placeholder="e.g. 25"
+            value={service.detergentPerKilo || ''}
+            onChangeText={(text) =>
+              updateField(sIndex, 'detergentPerKilo', text)
+            }
+            className="border border-gray-300 rounded-lg px-3 py-2 mb-4"
+          />
+
+          {/* 🧴 Fabric Conditioner */}
           <Text className="text-sm font-semibold text-gray-700 mb-1">
             Default Fabric Conditioner
           </Text>
-          <ScrollView horizontal className="mb-4">
+          <ScrollView horizontal className="mb-2">
             {fabricConditionerOptions.map(({ id, name }) => (
               <TouchableOpacity
                 key={`fab-${id}`}
@@ -199,17 +229,28 @@ export default function AddServices({
                 }`}
               >
                 <Text
-                  className={`text-base font-medium ${
+                  className={
                     service.defaultFabricConditionerId === id
                       ? 'text-white'
                       : 'text-black'
-                  }`}
+                  }
                 >
                   {name}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
+
+          <Text className="text-sm mb-1 text-gray-600">
+            Quantity per kilo (ml/g)
+          </Text>
+          <TextInput
+            keyboardType="numeric"
+            placeholder="e.g. 20"
+            value={service.fabricPerKilo || ''}
+            onChangeText={(text) => updateField(sIndex, 'fabricPerKilo', text)}
+            className="border border-gray-300 rounded-lg px-3 py-2 mb-4"
+          />
 
           {/* 💾 Save Button */}
           <TouchableOpacity
